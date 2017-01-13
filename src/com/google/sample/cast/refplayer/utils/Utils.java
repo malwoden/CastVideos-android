@@ -22,6 +22,7 @@ import com.google.android.gms.cast.MediaStatus;
 import com.google.android.gms.cast.framework.CastContext;
 import com.google.android.gms.cast.framework.CastSession;
 import com.google.android.gms.cast.framework.media.RemoteMediaClient;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.sample.cast.refplayer.R;
 import com.google.sample.cast.refplayer.expandedcontrols.ExpandedControlsActivity;
 import com.google.sample.cast.refplayer.queue.QueueDataProvider;
@@ -33,6 +34,7 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.res.Configuration;
 import android.graphics.Point;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.PopupMenu;
 import android.text.TextUtils;
 import android.util.Log;
@@ -42,6 +44,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -183,7 +186,14 @@ public class Utils {
                 QueueDataProvider provider = QueueDataProvider.getInstance(context);
                 MediaQueueItem queueItem = new MediaQueueItem.Builder(mediaInfo).setAutoplay(
                         true).setPreloadTime(PRELOAD_TIME_S).build();
-                MediaQueueItem[] newItemArray = new MediaQueueItem[]{queueItem};
+
+                List<MediaQueueItem> itemsList = new ArrayList<>();
+
+                for (int i = 0; i < 50; i++) {
+                    itemsList.add(queueItem);
+                }
+
+                MediaQueueItem[] newItemArray = itemsList.toArray(new MediaQueueItem[]{});
                 String toastMessage = null;
                 if (provider.isQueueDetached() && provider.getCount() > 0) {
                     if ((menuItem.getItemId() == R.id.action_play_now)
@@ -191,14 +201,26 @@ public class Utils {
                         MediaQueueItem[] items = Utils
                                 .rebuildQueueAndAppend(provider.getItems(), queueItem);
                         remoteMediaClient.queueLoad(items, provider.getCount(),
-                                MediaStatus.REPEAT_MODE_REPEAT_OFF, null);
+                                MediaStatus.REPEAT_MODE_REPEAT_OFF, null)
+                                    .setResultCallback(new ResultCallback<RemoteMediaClient.MediaChannelResult>() {
+                            @Override
+                            public void onResult(@NonNull RemoteMediaClient.MediaChannelResult mediaChannelResult) {
+                                Log.v("123", "onResult " + mediaChannelResult.getStatus());
+                            }
+                        });
                     } else {
                         return false;
                     }
                 } else {
                     if (provider.getCount() == 0) {
                         remoteMediaClient.queueLoad(newItemArray, 0,
-                                MediaStatus.REPEAT_MODE_REPEAT_OFF, null);
+                                MediaStatus.REPEAT_MODE_REPEAT_OFF, null)
+                                    .setResultCallback(new ResultCallback<RemoteMediaClient.MediaChannelResult>() {
+                            @Override
+                            public void onResult(@NonNull RemoteMediaClient.MediaChannelResult mediaChannelResult) {
+                                Log.v("123", "onResult " + mediaChannelResult.getStatus());
+                            }
+                        });
                     } else {
                         int currentId = provider.getCurrentItemId();
                         if (menuItem.getItemId() == R.id.action_play_now) {
