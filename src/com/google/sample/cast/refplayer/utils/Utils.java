@@ -17,6 +17,7 @@
 package com.google.sample.cast.refplayer.utils;
 
 import com.google.android.gms.cast.MediaInfo;
+import com.google.android.gms.cast.MediaMetadata;
 import com.google.android.gms.cast.MediaQueueItem;
 import com.google.android.gms.cast.MediaStatus;
 import com.google.android.gms.cast.framework.CastContext;
@@ -188,10 +189,16 @@ public class Utils {
                         true).setPreloadTime(PRELOAD_TIME_S).build();
 
                 List<MediaQueueItem> itemsList = new ArrayList<>();
-
-                for (int i = 0; i < 50; i++) {
+                for (int i = 0; i < 10; i++) {
                     itemsList.add(queueItem);
                 }
+
+                MediaInfo mi = new MediaInfo.Builder("https://www.example.com/fake.mp4")
+                        .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
+                        .setContentType("application/vnd.ms-sstr+xml")
+                        .build();
+                MediaQueueItem mqi = new MediaQueueItem.Builder(mi).build();
+                itemsList.add(0, mqi);
 
                 MediaQueueItem[] newItemArray = itemsList.toArray(new MediaQueueItem[]{});
                 String toastMessage = null;
